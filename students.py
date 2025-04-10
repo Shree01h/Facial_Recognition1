@@ -1,3 +1,5 @@
+
+
 from tkinter import *
 from tkinter import ttk, messagebox, filedialog
 from PIL import Image, ImageTk, ImageDraw
@@ -574,7 +576,7 @@ class Student:
             return
 
         try:
-            student_id = self.var_Student_id.get()  # Get the actual student ID from the form
+            student_id = self.var_Student_id.get()
             
             # Create data directory if it doesn't exist
             if not os.path.exists("data"):
@@ -612,8 +614,16 @@ class Student:
             if face_detected:
                 # Update photosample status in database
                 self.var_photosample.set("Yes")
-                self.update_data()  # This will save the photosample status
+                self.update_data()  # Save the photosample status
                 messagebox.showinfo("Result", f"Generated {img_id} images for student ID {student_id}")
+
+                # Navigate to Train Page
+                go_to_train = messagebox.askyesno("Navigate to Train Page", "Do you want to go to the Train Page now?", parent=self.root)
+                if go_to_train:
+                    self.root.destroy()  # Close the current Students Page
+                    from train import Train
+                    train_window = Toplevel()  # Use Toplevel for the new window
+                    Train(train_window)  # Initialize the Train class
             else:
                 messagebox.showerror("Error", "No face detected during the session", parent=self.root)
 
@@ -822,3 +832,4 @@ if __name__ == "__main__":
     root = Tk()
     obj = Student(root)
     root.mainloop()
+

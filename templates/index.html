@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition Login</title>
+    <link rel="icon" href="data:,"> <!-- Prevents favicon error -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <h1>Secure Login</h1>
+            
+            <!-- Traditional Login Form -->
+            <div id="traditional-login">
+                <div class="input-group">
+                    <input type="text" id="username" placeholder="Username" required>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="password" placeholder="Password" required>
+                    <span class="toggle-password">👁</span>
+                </div>
+                <div class="options">
+                    <div class="remember-me">
+                        <input type="checkbox" id="remember-me">
+                        <label for="remember-me">Remember me</label>
+                    </div>
+                    <a href="#" id="forgot-password">Forgot password?</a>
+                </div>
+                <button id="login-btn" class="btn">Login</button>
+                <p class="or-divider">OR</p>
+                <button id="face-login-btn" class="btn face-btn">Login with Face Recognition</button>
+                <p class="signup-prompt">Don't have an account? <a href="#" id="sign-up">Sign up</a></p>
+            </div>
+            
+            <!-- Face Recognition Interface -->
+            <div id="face-login" style="display: none;">
+                <div class="video-container">
+                    <video id="video" width="400" height="300" autoplay muted></video>
+                </div>
+                <div class="face-buttons">
+                    <button id="capture-btn" class="btn">Capture Image</button>
+                    <button id="back-btn" class="btn secondary-btn">Back</button>
+                </div>
+                <div id="face-message" class="message"></div>
+                <canvas id="canvas" style="display: none;"></canvas>
+            </div>
+            
+            <div id="login-message" class="message"></div>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgot-password-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Reset Password</h2>
+            <div class="input-group">
+                <input type="email" id="reset-email" placeholder="Enter your email">
+            </div>
+            <button id="reset-btn" class="btn">Reset Password</button>
+            <div id="reset-message" class="message"></div>
+        </div>
+    </div>
+
+    <!-- Sign Up Modal -->
+    <div id="signup-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Create Account</h2>
+            <div class="input-group">
+                <input type="text" id="signup-username" placeholder="Username" required>
+            </div>
+            <div class="input-group">
+                <input type="email" id="signup-email" placeholder="Email" required>
+            </div>
+            <div class="input-group">
+                <input type="password" id="signup-password" placeholder="Password" required>
+                <span class="toggle-password">👁</span>
+            </div>
+            <div class="input-group">
+                <input type="password" id="signup-confirm" placeholder="Confirm Password" required>
+                <span class="toggle-password">👁</span>
+            </div>
+            <button id="signup-btn" class="btn">Sign Up</button>
+            <div id="signup-message" class="message"></div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

@@ -58,25 +58,27 @@ class Login:
     def login(self):
         username = self.txt_user.get()
         password = self.txt_pass.get()
-        
+
         if username == "" or password == "":
             messagebox.showerror("Error", "All fields are required", parent=self.root)
-        else:
-            try:
-                query = "SELECT * FROM users WHERE username=%s AND password=%s"
-                self.cursor.execute(query, (username, password))
-                row = self.cursor.fetchone()
-                
-                if row:
-                    messagebox.showinfo("Success", "Welcome to Face Recognition System", parent=self.root)
-                    self.root.destroy()
-                    root = Tk()
-                    obj = Face_Recognition_System(root)  # Launch main application
-                    root.mainloop()
-                else:
-                    messagebox.showerror("Error", "Invalid username or password", parent=self.root)
-            except Exception as es:
-                messagebox.showerror("Error", f"Error: {str(es)}", parent=self.root)
+            return
+
+        try:
+            query = "SELECT * FROM users WHERE username=%s AND password=%s"
+            self.cursor.execute(query, (username, password))
+            row = self.cursor.fetchone()
+
+            if row:
+                messagebox.showinfo("Success", f"Welcome {row[1]}!", parent=self.root)
+                self.root.destroy()
+                from main import Face_Recognition_System
+                root = Tk()
+                Face_Recognition_System(root)
+                root.mainloop()
+            else:
+                messagebox.showerror("Error", "Invalid Username or Password", parent=self.root)
+        except Exception as e:
+            messagebox.showerror("Error", f"Error: {str(e)}", parent=self.root)
     
     def register_window(self):
         self.new_window = Toplevel(self.root)
@@ -116,26 +118,27 @@ class Login:
     def register(self):
         if self.reg_name.get() == "" or self.reg_user.get() == "" or self.reg_pass.get() == "":
             messagebox.showerror("Error", "All fields are required", parent=self.new_window)
-        else:
-            try:
-                query = "SELECT * FROM users WHERE username=%s"
-                self.cursor.execute(query, (self.reg_user.get(),))
-                row = self.cursor.fetchone()
-                
-                if row:
-                    messagebox.showerror("Error", "Username already exists", parent=self.new_window)
-                else:
-                    query = "INSERT INTO users (name, username, password) VALUES (%s, %s, %s)"
-                    self.cursor.execute(query, (
-                        self.reg_name.get(),
-                        self.reg_user.get(),
-                        self.reg_pass.get()
-                    ))
-                    self.conn.commit()
-                    messagebox.showinfo("Success", "Registration successful", parent=self.new_window)
-                    self.new_window.destroy()
-            except Exception as es:
-                messagebox.showerror("Error", f"Error: {str(es)}", parent=self.new_window)
+            return
+
+        try:
+            query = "SELECT * FROM users WHERE username=%s"
+            self.cursor.execute(query, (self.reg_user.get(),))
+            row = self.cursor.fetchone()
+
+            if row:
+                messagebox.showerror("Error", "Username already exists", parent=self.new_window)
+            else:
+                query = "INSERT INTO users (name, username, password) VALUES (%s, %s, %s)"
+                self.cursor.execute(query, (
+                    self.reg_name.get(),
+                    self.reg_user.get(),
+                    self.reg_pass.get()
+                ))
+                self.conn.commit()  # Ensure the changes are committed to the database
+                messagebox.showinfo("Success", "Registration successful", parent=self.new_window)
+                self.new_window.destroy()
+        except Exception as e:
+            messagebox.showerror("Error", f"Error: {str(e)}", parent=self.new_window)
 
 if __name__ == "__main__":
     # First create the users table if it doesn't exist

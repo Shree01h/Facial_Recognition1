@@ -1,3 +1,5 @@
+
+
 from tkinter import *
 from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
@@ -78,71 +80,81 @@ class FaceRecognition:
             return None
 
     def face_recog(self):
-        # Check if classifier exists
-        classifier_path = "classifier.xml"
-        if not os.path.exists(classifier_path):
-            messagebox.showerror("Error", "Classifier not found! Please train the model first.")
-            return
-
-        # Initialize camera
-        cap = cv2.VideoCapture(0)
-        if not cap.isOpened():
-            messagebox.showerror("Error", "Could not open video device")
-            return
-
-        # Load classifier and cascade
+        # Load the classifier and database connection
         clf = cv2.face.LBPHFaceRecognizer_create()
-        clf.read(classifier_path)
-        
-        face_cascade = cv2.CascadeClassifier(
-            cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+        clf.read("classifier.xml")
 
-        font = cv2.FONT_HERSHEY_SIMPLEX
+        face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
+
+        # Connect to the database to fetch student details
+        conn = mysql.connector.connect(
+            host="localhost",
+            port=3307,
+            user="root",
+            password="#1heymysql",
+            database="face_recog"
+        )
+        cursor = conn.cursor()
+
+        # Fetch all student details
+        cursor.execute("SELECT Student_id, Name, Department FROM student")
+        student_data = {str(row[0]): {"name": row[1], "department": row[2]} for row in cursor.fetchall()}
+
+        conn.close()
+
+        cap = cv2.VideoCapture(0)
 
         while True:
             ret, img = cap.read()
             if not ret:
-                messagebox.showerror("Error", "Failed to capture frame")
                 break
 
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             faces = face_cascade.detectMultiScale(gray, 1.3, 5)
 
             for (x, y, w, h) in faces:
-                cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
                 roi_gray = gray[y:y+h, x:x+w]
-                
-                # Resize the face image to match training size
-                roi_gray = cv2.resize(roi_gray, (200, 200), interpolation=cv2.INTER_LINEAR)
-                
-                # Predict the face
                 id_, confidence = clf.predict(roi_gray)
-                
-                # Confidence calculation (LBPH returns lower values for better matches)
-                confidence_percent = round(100 - confidence / 2.55)  # Convert to percentage
-                
-                # Only consider matches with high confidence
-                if confidence_percent > 70:  # 70% confidence threshold
-                    student_details = self.fetch_student_details(str(id_))
-                    if student_details:
-                        name, dept, roll = student_details
-                        cv2.putText(img, f"ID: {id_}", (x, y-50), font, 0.8, (0, 255, 0), 2)
-                        cv2.putText(img, f"Name: {name}", (x, y-30), font, 0.8, (0, 255, 0), 2)
-                        cv2.putText(img, f"Dept: {dept}", (x, y-10), font, 0.8, (0, 255, 0), 2)
-                    else:
-                        cv2.putText(img, "Unknown ID", (x, y-10), font, 0.8, (0, 0, 255), 2)
+
+                if confidence < 50:  # Confidence threshold
+                    student_id = str(id_)
+                    confidence_text = f"{round(100 - confidence)}%"
+
+                    # Fetch student details from the database
+                    student_name = student_data.get(student_id, {}).get("name", "Unknown")
+                    department = student_data.get(student_id, {}).get("department", "Unknown")
+
+                    # Draw a green rectangle around the face
+                    cv2.rectangle(img, (x, y), (x+w, y+h), (0, 255, 0), 2)
+
+                    # Display ID, Name, Department, and Confidence
+                    cv2.putText(img, f"ID: {student_id}", (x, y-60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+                    cv2.putText(img, f"Name: {student_name}", (x, y-35), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+                    cv2.putText(img, f"Dept: {department}", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+                    cv2.putText(img, f"Confidence: {confidence_text}", (x, y+h+20), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
                 else:
-                    cv2.putText(img, "Unknown Face", (x, y-10), font, 0.8, (0, 0, 255), 2)
+                    # Draw a red rectangle for unknown faces
+                    cv2.rectangle(img, (x, y), (x+w, y+h), (0, 0, 255), 2)
+                    cv2.putText(img, "Unknown", (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
 
-            cv2.imshow('Face Recognition', img)
+            cv2.imshow("Face Recognition", img)
 
-            if cv2.waitKey(1) == 13:  # Enter key to exit
+            if cv2.waitKey(1) == 13:  # Enter key to stop
                 break
 
         cap.release()
         cv2.destroyAllWindows()
 
+    def open_main_page(self):
+        from main import Face_Recognition_System
+        main_window = Toplevel()
+        Face_Recognition_System(main_window)
+
 if __name__ == "__main__":
     root = Tk()
     app = FaceRecognition(root)
     root.mainloop()
+
+
+
+

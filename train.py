@@ -1,3 +1,4 @@
+
 from tkinter import *
 from tkinter import messagebox
 from PIL import Image, ImageTk  # Ensure Pillow is installed
@@ -34,12 +35,10 @@ class Train:
     def train_classifier(self):
         data_dir = "data"
 
-        # Check if the data directory exists
         if not os.path.exists(data_dir):
             messagebox.showerror("Error", f"Data directory '{data_dir}' does not exist.")
             return
 
-        # Get the list of image paths
         path = [os.path.join(data_dir, file) for file in os.listdir(data_dir) if file.endswith(('.jpg', '.png'))]
 
         if not path:
@@ -54,28 +53,37 @@ class Train:
                 img = Image.open(image).convert('L')  # Convert to grayscale
                 imageNp = np.array(img, 'uint8')
 
-                # Extract ID from filename (e.g., user.3.1 -> 3)
-                filename = os.path.split(image)[1]  # Get the filename
-                id = int(filename.split('.')[1])  # Get the second part as ID
+                filename = os.path.split(image)[1]
+                id = int(filename.split('.')[1])
 
                 faces.append(imageNp)
                 ids.append(id)
+
                 cv2.imshow("Training", imageNp)
-                cv2.waitKey(1)  # Allow OpenCV to process the window events
+                cv2.waitKey(10)  # Reduced delay to speed up training
 
             ids = np.array(ids)
 
-            # Train the classifier and save
             clf = cv2.face.LBPHFaceRecognizer_create()
             clf.train(faces, ids)
             clf.write("classifier.xml")
             cv2.destroyAllWindows()
-            messagebox.showinfo("Result", "Training datasets completed!!!")
+            messagebox.showinfo("Result", "Training datasets completed successfully!", parent=self.root)
+
+            # Navigate to Face Detection Page
+            self.open_face_recognition_page()
+
         except Exception as e:
             cv2.destroyAllWindows()
             messagebox.showerror("Error", f"An error occurred during training: {str(e)}")
+
+    def open_face_recognition_page(self):
+        from face_recognition import FaceRecognition
+        face_recognition_window = Toplevel()
+        FaceRecognition(face_recognition_window)
 
 if __name__ == "__main__":
     root = Tk()
     obj = Train(root)
     root.mainloop()
+
